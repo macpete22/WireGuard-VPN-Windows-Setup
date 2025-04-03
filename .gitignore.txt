@@ -1,0 +1,24 @@
+# Ignore node_modules (if you use Node.js in your project)
+node_modules/
+
+# Ignore log files
+*.log
+
+# Ignore WireGuard keys (private keys should never be pushed to a public repository)
+*.key
+*.conf
+
+# Ignore build/compiled files
+*.exe
+*.dll
+
+# Ignore Windows-specific files
+Thumbs.db
+Desktop.ini
+
+# Ignore IDE files (e.g., VS Code, IntelliJ, etc.)
+.vscode/
+.idea/
+
+# Ignore system files (macOS, Linux, etc.)
+.DS_Store
