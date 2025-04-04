@@ -32,11 +32,31 @@ This guide walks through setting up a WireGuard VPN server on an old Windows 10 
 - Download and install WireGuard for Windows from the same source.
 
 ### 2. Generate Keys
-#### On the Server:
-- Open WireGuard on Windows and click **Generate Keypair** to create a public and private key for the server.
+
+#### **On the Server**
+
+Open **Command Prompt** on your Windows 10 server and run the following command to generate a **private key**:
+
+`wg genkey`
+
+Copy the **private key** somewhere **secure**. Then, generate the **corresponding public key**:
+
+`echo YOUR_SERVER_PRIVATE_KEY | wg pubkey`
+
+These keys will be used in the server and client configuration files to establish the VPN connection.
+
+- Screenshot – Server key generation:: ![Server Key Generation](screenshots/generatepub&pvtkeys.png)
+
 
 #### On the Client:
-- Open WireGuard on the Acer laptop and click **Generate Keypair** to create the client’s public and private key.
+- On the **Acer laptop**, open **Command Prompt** and repeat the same **key generation** process:
+
+`wg genkey
+echo YOUR_CLIENT_PRIVATE_KEY | wg pubkey`
+
+Either save these **keys** securely in a **configuration file** or temporarily hold them in **memory**, depending on your **privacy preference**.
+
+**Note:** For **privacy reasons**, storing keys directly on disk **may not** be ideal. However, you may **securely save them** if that suits your workflow.
 
 ### 3. Configure the WireGuard Server (HP Slimline 260-a020 Desktop)
 - Open WireGuard and click **Add Tunnel → Create from Scratch**.
@@ -63,7 +83,7 @@ AllowedIPs = 10.0.0.2/32
 [Interface]
 PrivateKey = YOUR_CLIENT_PRIVATE_KEY
 Address = 10.0.0.2/24
-DNS = 1.1.1.1
+DNS = 8.8.8.8, 1.1.1.1
 
 [Peer]
 PublicKey = YOUR_SERVER_PUBLIC_KEY
@@ -85,22 +105,53 @@ Here are the screenshots for configuring the server firewall rules:
 
 ## 6. Enable Internet Connection Sharing (ICS) on the Server
 
-To allow the server to share its internet connection with clients, follow the ICS setup. Here's a screenshot of the ICS sharing setup:
+To allow the server to share its internet connection with clients, follow the ICS setup:
 
+1. **Right-click** on your **Wi-Fi connection** (the one you use to access the internet).
+2. Select **"Properties"**.
+3. Go to the **"Sharing"** tab.
+4. Check the box for **"Allow other network users to connect through this computer's Internet connection"**.
+5. From the drop-down menu, select the **WireGuard adapter** to share your internet connection with.
+6. Click **OK** to save the settings.
+
+Here’s a screenshot of the ICS sharing setup:
 - ICS configuration: ![ICS Share](screenshots/server_shareICS.png)
+
+
 
 ## 7. Configure IP Routing
 
-Ensure IP routing is enabled on the server to forward traffic correctly:
+To enable IP routing on the server, follow these steps:
+
+1. Open **PowerShell** with **Administrator** privileges:
+   - Right-click the **Start menu** and select **"Windows PowerShell (Admin)"**.
+2. In the PowerShell window, type the following command to enable IP routing:
+
+`Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters" -Name "IPEnableRouter" -Value 1`
 
 - Enabling IP routing: ![Enable IP Routing](screenshots/server_powershell_allowiprouting.png)
+
+3. Press **Enter** to execute the command. This command modifies the Windows registry to enable IP routing.
+
+4. To apply the changes, you may need to **restart your computer** or restart the **TCP/IP stack** by running the following command in PowerShell:
+
+`Restart-Service -Name "netsh"`
+
+5. After rebooting or restarting the service, you can verify that IP routing is enabled by checking the registry or by using the following command:
+
+`Get-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\Tcpip\Parameters" -Name "IPEnableRouter"`
+
+
+
 
 ## 8. Testing the Handshake and Transfer
 
 After configuring everything, ensure the server is receiving the handshake and transferring traffic to the client:
 
-- Handshake process: ![Handshake](screenshots/server_receivinghandshake.png)
-- WireGuard transfers traffic: ![Transfers](screenshots/server_wgreceivesandtransfers.png)
+- Handshake process: 
+![Handshake](screenshots/server_receivinghandshake.png)
+- WireGuard transfers traffic:
+![Transfers](screenshots/server_wgreceivesandtransfers.png)
 
 ## 9. Verify Public IP on Client
 
@@ -115,22 +166,22 @@ After verifying the public IP, check that the **WireGuard handshake is successfu
 - Client handshake verification: ![Client-side handshake](screenshots/client_handshakeworks.png)
 
 
-## ✅ Final Confirmation: Successful Traffic Forwarding  
+##✅ Final Confirmation: Successful Traffic Forwarding  
 
 Although I accidentally cropped out a screenshot, there was a **WireGuard adapter being shared through my Wi-Fi adapter**, confirming successful internet traffic forwarding through the VPN tunnel.  
 
 - **Where to check:**  
   - Look at the **network status** in the Windows taskbar (bottom-right).  
   - It should show:  
-    - **WireGuard Server - Internet access** ✅  
-    - **Wi-Fi - Internet access** ✅  
+    - **WireGuard Server - Internet access** ✅ 
+    - **Wi-Fi - Internet access**  ✅ 
 
-This confirms that the **client's internet traffic is successfully being routed through the WireGuard VPN server tunnel.** 🎉  
+This confirms that the **client's internet traffic is successfully being routed through the WireGuard VPN server tunnel.**   
 
 
 ---
 
-## Troubleshooting Windows-Specific Issues
+## 💡Troubleshooting Windows-Specific Issues
 
 ### 1. Windows Firewall Conflicts
 - Ensure WireGuard is allowed in both **inbound** and **outbound** rules.
@@ -151,12 +202,12 @@ This confirms that the **client's internet traffic is successfully being routed 
 
 ---
 
-## Future Improvements
+##💡 Future Improvements
 - Add **Pi-hole** for ad-blocking.
 - Use a **dedicated firewall device**.
 - Automate **firewall rule setup** with PowerShell.
 
 ---
 
-## Disclaimer
+##💡 Disclaimer
 Ensure you comply with all **network and ISP policies** when setting up a VPN.
